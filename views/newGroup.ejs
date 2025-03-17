@@ -23,32 +23,30 @@
 <body>
 <h2>Create New Group</h2>
 
-<form onsubmit="return validateGroupForm()" action="/addGroup" method="POST">
+<form action="/addGroup" method="POST">
     <label for="groupName">Group Name:</label>
     <input type="text" id="groupName" name="groupName" required />
 
+    <p style="margin-top: 10px; font-size: 14px; color: #555;">
+        (You will be automatically included in the group.)
+    </p>
+
     <div style="max-height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
-        <% users.forEach(function(user) { %>
-            <div>
-                <label>
-                    <input type="checkbox" name="users[]" value="<%= user.user_id %>" />
-                    <%= user.username %>
-                </label>
-            </div>
-        <% }); %>
+        <% if (users.length === 0) { %>
+            <div>No other users found.</div>
+        <% } else { %>
+            <% users.forEach(function(user) { %>
+                <div>
+                    <label>
+                        <input type="checkbox" name="users[]" value="<%= user.user_id %>" />
+                        <%= user.username %>
+                    </label>
+                </div>
+            <% }); %>
+        <% } %>
     </div>
 
     <button type="submit" style="margin-top: 10px;">Create Group</button>
 </form>
 </body>
-
-<script>
-    function validateGroupForm() {
-        const checkedUsers = document.querySelectorAll('input[name="users[]"]:checked');
-        if (checkedUsers.length === 0) {
-            alert('Please select at least one member.');
-            return false;
-        }
-        return true;
-    }
-</script>
+</html>

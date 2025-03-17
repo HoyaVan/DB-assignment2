@@ -272,9 +272,8 @@ router.post('/addGroup', async (req, res) => {
 
     const { groupName, users } = req.body;
 
-    if (!groupName || !users) {
-        // Redirect back to GET /addGroup with error
-        return res.redirect('/addGroup?error=Group name and members are required');
+    if (!groupName) {
+        return res.redirect('/addGroup?error=Group name is required');
     }
 
     // Ensure members is always an array

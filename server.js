@@ -41,6 +41,8 @@ app.use(session({
     }
 }));
 
+console.log("SESSION_DB_URI:", process.env.SESSION_DB_URI);
+
 // Debugging: Check if session storage is working
 app.use((req, res, next) => {
     console.log("Session Data:", req.session);
