@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Chats</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        a { text-decoration: none; color: blue; }
+        a:hover { text-decoration: underline; }
+        button {
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+        #inviteDropdown {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 400px;
+            display: none;
+        }
+        .invite-user {
+            margin-bottom: 6px;
+        }
+        #messageInput {
+            flex-grow: 1;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #messageForm {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        #messageList {
+            max-height: 650px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<h2><%= room.name %></h2>
+
+<!-- Back to Group Button -->
+<button id="backToGroups" onclick="location.href='/group'">
+    Back to Groups
+</button>
+
+<!-- Invite People Button -->
+<button id="inviteBtn">Invite People</button>
+
+<!-- Invite Dropdown -->
+<div id="inviteDropdown">
+    <form action="/inviteUsers/<%= room.room_id %>" method="POST">
+        <% if (userList.length > 0) { %>
+            <% userList.forEach(function(user) { %>
+                <div class="invite-user">
+                    <label>
+                        <input type="checkbox" name="users[]" value="<%= user.user_id %>">
+                        <%= user.username %>
+                    </label>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p>No users to invite.</p>
+        <% } %>
+        <button type="submit" style="margin-top: 10px;">Invite</button>
+    </form>
+</div>
+
+<!-- Message List -->
+<div id="messageList">
+    <div>
+        <% readMessages.forEach(function(msg) { %>
+            <strong><%= msg.RoomUser.User.username %></strong>
+            <small style="color: gray;"><%= msg.sent_datetime %></small>:
+            <div><%= msg.text %></div>
+
+            <!-- Emoji reaction form -->
+            <form action="/react/<%= msg.message_id %>" method="POST">
+                <% emojiList.forEach(function(emoji) { %>
+                    <button type="submit" name="emoji_name" value="<%= emoji.name %>" style="border: none; background: none;">
+                        <img src="/emoji/<%= emoji.image %>" alt="<%= emoji.name %>" style="width: 16px; height: 16px; vertical-align: middle;">
+                    </button>
+                <% }); %>
+            </form>
+
+            <!-- Emoji Reactions Summary -->
+            <% if (msg.reactionSummary) { %>
+                <div class="emoji-summary" style="margin-top: 4px;">
+                    <% Object.keys(msg.reactionSummary).forEach(function(emojiName) {
+                        const emojiData = emojiList.find(e => e.name === emojiName);
+                    %>
+                    <span style="margin-right: 10px; display: inline-flex; align-items: center;">
+                        <% if (emojiData) { %>
+                            <img src="/emoji/<%= emojiData.image %>" alt="<%= emojiName %>" width="16" height="16">
+                        <% } else { %>
+                            <%= emojiName %>
+                        <% } %>
+                        <span style="margin-left: 4px; font-size: 12px;"><%= msg.reactionSummary[emojiName].count %></span>
+                        <% if (msg.reactionSummary[emojiName].reactedByUser) { %>
+                            <span style="color: green; font-size: 12px;">(you)</span>
+                        <% } %>
+                    </span>
+                    <% }); %>
+                </div>
+            <% } %>
+            <hr>
+        <% }); %>
+
+        <% if (unreadMessages.length > 0) { %>
+            <hr style="border-top: 1px dashed #888; margin: 16px 0;">
+            <div style="text-align: center; color: #666; font-size: 13px; margin-bottom: 10px;">Unread Messages</div>
+        <% } %>
+
+        <% unreadMessages.forEach(function(msg) { %>
+            <strong><%= msg.RoomUser.User.username %></strong>
+            <small style="color: gray;"><%= msg.sent_datetime %></small>:
+            <div><%= msg.text %></div>
+
+            <!-- Emoji reaction form -->
+            <form action="/react/<%= msg.message_id %>" method="POST">
+                <% emojiList.forEach(function(emoji) { %>
+                    <button type="submit" name="emoji_name" value="<%= emoji.name %>" style="border: none; background: none;">
+                        <img src="/emoji/<%= emoji.image %>" alt="<%= emoji.name %>" style="width: 16px; height: 16px; vertical-align: middle;">
+                    </button>
+                <% }); %>
+            </form>
+
+            <!-- Emoji Reactions Summary -->
+            <% if (msg.reactionSummary) { %>
+                <div class="emoji-summary" style="margin-top: 4px;">
+                    <% Object.keys(msg.reactionSummary).forEach(function(emojiName) {
+                        const emojiData = emojiList.find(e => e.name === emojiName);
+                    %>
+                    <span style="margin-right: 10px; display: inline-flex; align-items: center;">
+                        <% if (emojiData) { %>
+                            <img src="/emoji/<%= emojiData.image %>" alt="<%= emojiName %>" width="16" height="16">
+                        <% } else { %>
+                            <%= emojiName %>
+                        <% } %>
+                        <span style="margin-left: 4px; font-size: 12px;"><%= msg.reactionSummary[emojiName].count %></span>
+                        <% if (msg.reactionSummary[emojiName].reactedByUser) { %>
+                            <span style="color: green; font-size: 12px;">(you)</span>
+                        <% } %>
+                    </span>
+                    <% }); %>
+                </div>
+            <% } %>
+            <hr>
+        <% }); %>
+    </div>
+</div>
+
+<!-- Message Send Form -->
+<form id="messageForm" action="/sendMessage/<%= room.room_id %>" method="POST">
+    <label for="messageInput"></label><input id="messageInput" type="text" name="text" placeholder="Type your message..." required>
+    <button type="submit" style="padding: 8px 16px;">Send</button>
+</form>
+
+<!-- Scripts -->
+<script>
+    window.addEventListener("DOMContentLoaded", () => {
+        const inviteBtn = document.getElementById('inviteBtn');
+        const dropdown = document.getElementById('inviteDropdown');
+
+        console.log("inviteBtn =", inviteBtn);
+        console.log("inviteDropdown =", dropdown);
+
+        inviteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent immediate close
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!inviteBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<!-- Auto-clear form input on page load -->
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('messageForm');
+        if (form) form.reset(); // Clear input value
+    });
+</script>
+
+<!-- Disable the Send button after clicking -->
+<script>
+    window.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById('messageForm');
+        const sendButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', () => {
+            sendButton.disabled = true;
+            sendButton.innerText = "Sending..."; // Optional: UI feedback
+        });
+    });
+</script>
+
+</body>
+</html>

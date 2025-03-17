@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Chats</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        a { text-decoration: none; color: blue; }
+        a:hover { text-decoration: underline; }
+        button {
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<h2>Create New Group</h2>
+
+<form onsubmit="return validateGroupForm()" action="/addGroup" method="POST">
+    <label for="groupName">Group Name:</label>
+    <input type="text" id="groupName" name="groupName" required />
+
+    <div style="max-height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+        <% users.forEach(function(user) { %>
+            <div>
+                <label>
+                    <input type="checkbox" name="users[]" value="<%= user.user_id %>" />
+                    <%= user.username %>
+                </label>
+            </div>
+        <% }); %>
+    </div>
+
+    <button type="submit" style="margin-top: 10px;">Create Group</button>
+</form>
+</body>
+
+<script>
+    function validateGroupForm() {
+        const checkedUsers = document.querySelectorAll('input[name="users[]"]:checked');
+        if (checkedUsers.length === 0) {
+            alert('Please select at least one member.');
+            return false;
+        }
+        return true;
+    }
+</script>

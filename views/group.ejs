@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Chats</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        a { text-decoration: none; color: blue; }
+        a:hover { text-decoration: underline; }
+        button {
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Your Chats</h2>
+
+<% if (groups.length > 0) { %>
+    <ul>
+        <% groups.forEach(function(group) { %>
+            <li>
+                <div class="group-name"><%= group.name %></div>
+                <a href="/chat/<%= group.room_id %>"><%= group.text || 'No messages yet' %></a>
+                - Unread: <%= group.unreadCount || 0 %>
+            </li>
+        <% }); %>
+    </ul>
+    <p># groups: <%= groups.length %></p>
+<% } else { %>
+    <p>No chats yet.</p>
+<% } %>
+
+<form action="/addGroup" method="POST">
+    <button type="submit">New Group</button>
+</form>
+
+</body>
+</html>
