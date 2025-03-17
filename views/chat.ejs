@@ -165,28 +165,41 @@
 </div>
 
 <!-- Message Send Form -->
-<form id="messageForm" action="/sendMessage/<%= room.room_id %>" method="POST">
+<form id="messageForm">
     <label for="messageInput"></label><input id="messageInput" type="text" name="text" placeholder="Type your message..." required>
     <button type="submit" style="padding: 8px 16px;">Send</button>
 </form>
 
+
 <!-- Scripts -->
 <script>
     window.addEventListener("DOMContentLoaded", () => {
-        const inviteBtn = document.getElementById('inviteBtn');
-        const dropdown = document.getElementById('inviteDropdown');
+        const form = document.getElementById('messageForm');
+        const sendButton = form.querySelector('button[type="submit"]');
 
-        console.log("inviteBtn =", inviteBtn);
-        console.log("inviteDropdown =", dropdown);
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            sendButton.disabled = true;
+            sendButton.innerText = "Sending...";
 
-        inviteBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent immediate close
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        });
+            const text = document.getElementById('messageInput').value;
+            const roomId = "<%= room.room_id %>";
 
-        document.addEventListener('click', (e) => {
-            if (!inviteBtn.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
+            try {
+                const response = await fetch(`/sendMessage/${roomId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({ text })
+                });
+
+                // Replace URL so it doesn't stack history
+                window.location.replace(`/chat/${roomId}`);
+            } catch (err) {
+                alert("Failed to send message.");
+                sendButton.disabled = false;
+                sendButton.innerText = "Send";
             }
         });
     });
@@ -211,6 +224,20 @@
             sendButton.innerText = "Sending..."; // Optional: UI feedback
         });
     });
+</script>
+
+<script>
+    // If user goes BACK to this page via browser navigation, redirect to /group
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+            window.location.replace("/group");
+        }
+    });
+</script>
+
+<script>
+    // Clean up browser history on initial chat page load
+    window.history.replaceState({}, "", "/group");
 </script>
 
 </body>

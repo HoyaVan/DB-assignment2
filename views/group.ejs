@@ -28,7 +28,9 @@
         <% groups.forEach(function(group) { %>
             <li>
                 <div class="group-name"><%= group.name %></div>
-                <a href="/chat/<%= group.room_id %>"><%= group.text || 'No messages yet' %></a>
+                <a href="/chat/<%= group.room_id %>">
+                    <%= group.text || 'No messages yet' %>
+                </a>
                 - Unread: <%= group.unreadCount || 0 %>
             </li>
         <% }); %>

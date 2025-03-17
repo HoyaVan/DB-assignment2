@@ -175,7 +175,6 @@ router.get("/members", requireAuth, (req, res) => {
 
 // your chats (managing page)
 router.get("/group", async (req, res) => {
-
     const currentUsername = req.session.user.username;
     const currentUser = await User.findOne({ where: { username: currentUsername } });
 
@@ -189,18 +188,9 @@ router.get("/group", async (req, res) => {
 
     const roomIds = userRoomLinks.map(ru => ru.room_id);
 
-    const roomUsers = await RoomUser.findAll({
-        where: { user_id: currentUser.user_id  }
-    });
-
     const groups = await Room.findAll({
         where: { room_id: { [Op.in]: roomIds } }
     });
-
-    const lastReadMap = {};
-    for (const ru of roomUsers) {
-        lastReadMap[ru.room_id] = ru.last_read_message_id || 0;
-    }
 
     for (const group of groups) {
         // Get all room_user_ids for this group
@@ -213,11 +203,10 @@ router.get("/group", async (req, res) => {
 
         // Get last read message ID for current user in this group
         const userRoomLink = userRoomLinks.find(ru => ru.room_id === group.room_id);
-        const lastReadId = userRoomLink?.last_read_message_id || 0;
+        const lastReadId = userRoomLink?.last_read_message_id;
 
-        // Get datetime of that message (if any)
         let lastReadDate = null;
-        if (lastReadId > 0) {
+        if (lastReadId) {
             const lastReadMsg = await Message.findOne({
                 where: { message_id: lastReadId },
                 attributes: ['sent_datetime']
@@ -225,13 +214,20 @@ router.get("/group", async (req, res) => {
             lastReadDate = lastReadMsg?.sent_datetime;
         }
 
-        // Count unread messages based on sent_datetime
         let unreadCount = 0;
         if (lastReadDate) {
+            // Count only messages after last read
             unreadCount = await Message.count({
                 where: {
                     room_user_id: { [Op.in]: roomUserIds },
                     sent_datetime: { [Op.gt]: lastReadDate }
+                }
+            });
+        } else {
+            // No last read record → count all messages in the group
+            unreadCount = await Message.count({
+                where: {
+                    room_user_id: { [Op.in]: roomUserIds }
                 }
             });
         }
@@ -249,6 +245,7 @@ router.get("/group", async (req, res) => {
 
     res.render("group", { groups });
 });
+
 
 router.get('/addGroup', requireAuth, async (req, res) => {
     const currentUsername = req.session?.user?.username;
@@ -342,10 +339,6 @@ router.get("/chat/:roomId", requireAuth, async (req, res) => {
 
     //  these are for message lookup
     const roomUserRecordIds = roomUsers.map(ru => ru.room_user_id);
-
-    // // Find the RoomUser record for current user
-    // const currentUserRoomUser = roomUsers.find(ru => ru.user_id === currentUser.user_id);
-    // const lastReadId = currentUserRoomUser?.last_read_message_id || 0;
 
     // Get last read message ID for the current user
     const currentRoomUser = await RoomUser.findOne({
@@ -496,7 +489,15 @@ router.post("/sendMessage/:roomId", requireAuth, async (req, res) => {
     await roomUser.save();
 
     // Step 4: Redirect back to chat
-    res.redirect(`/chat/${roomId}`);
+    res.send(`
+        <html>
+          <head>
+            <meta http-equiv="refresh" content="0;url=/chat/${roomId}" />
+            <script>window.location.replace('/chat/${roomId}');</script>
+          </head>
+          <body>Redirecting to chat...</body>
+        </html>
+    `);
 });
 
 // to react with an emoji

@@ -5,7 +5,7 @@ const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 const userRoutes = require('./routes/authRoutes');
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3306;
 const { sequelize } = require('./models');
 
 sequelize.authenticate()
